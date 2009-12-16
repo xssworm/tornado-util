@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import logging
-log = logging.getLogger('frontik.server')
+log = logging.getLogger('tornado_util.server')
 
 import tornado.options
 from tornado.options import options

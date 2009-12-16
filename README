@@ -1,0 +1,5 @@
+This are some of the helpers functions, that emerged from production
+use of Tornado in hh.ru
+
+Depends on:
+  python-daemon
