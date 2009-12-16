@@ -59,14 +59,6 @@ def main(app):
     import tornado.web
 
     try:
-        import frontik_www
-    except ImportError:
-        log.error('frontik_www module cannot be found')
-        sys.exit(1)
-
-    logging.getLogger('tornado.httpclient').setLevel(logging.WARN)
-
-    try:
         log.info('starting server on %s:%s', options.host, options.port)
         http_server = tornado.httpserver.HTTPServer(app)
         http_server.listen(options.port, options.host)
