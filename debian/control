@@ -1,0 +1,14 @@
+Source: python-tornado-util
+Section: unknown
+Priority: extra
+Maintainer: Andrey Tatarinov <a.tatarinov@hh.ru>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+
+Package: python-tornado-util
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+  python2.5,
+  python-tornado,
+  python-daemon,
+Description: Helpers for production tornado services.
