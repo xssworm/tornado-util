@@ -6,7 +6,7 @@ log = logging.getLogger('tornado_util.server')
 import tornado.options
 from tornado.options import options
 
-def bootstrap(config_file):
+def bootstrap(config_file, default_port=8080):
     '''
     - объявить стандартные опции config, host, port, daemonize, autoreload
     - прочитать командную строку, конфигурационный файл
@@ -20,7 +20,7 @@ def bootstrap(config_file):
     tornado.options.define('config', None, str)
 
     tornado.options.define('host', '0.0.0.0', str)
-    tornado.options.define('port', 8080, int)
+    tornado.options.define('port', default_port, int)
     tornado.options.define('daemonize', True, bool)
     tornado.options.define('autoreload', True, bool)
 
@@ -73,3 +73,15 @@ def main(app):
     except Exception, e:
         log.exception('main failed')
 
+class StatusHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('Ok\n')
+
+status_handler = ('/status/', StatusHandler)
+
+class StopHandler(tornado.web.RequestHandler):
+    def get(self):
+        log.info('requested shutdown')
+        tornado.ioloop.IOLoop.instance().stop()
+
+stop_handler = ('/stop/', StopHandler)

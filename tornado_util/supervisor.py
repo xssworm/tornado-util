@@ -8,6 +8,7 @@ services
 It implements following commands:
 * start
 * stop
+* restart
 * status
 
 Sample usage:
@@ -113,6 +114,10 @@ def supervisor(script, config):
 
     elif cmd == 'stop':
         stop()
+
+    elif cmd == 'restart':
+        stop()
+        start(script)
 
     elif cmd == 'status':
         status()

@@ -1,3 +1,16 @@
+python-tornado-util (0.2.2) unstable; urgency=low
+
+  * server: +status_handler, +stop_handler
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Wed, 13 Jan 2010 18:27:42 +0400
+
+python-tornado-util (0.2.1) unstable; urgency=low
+
+  * supervisor: +restart command
+  * server.bootstrap: +default_port parameter
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Wed, 13 Jan 2010 18:06:18 +0400
+
 python-tornado-util (0.2) unstable; urgency=low
 
   * + tornado_util.supervisor
