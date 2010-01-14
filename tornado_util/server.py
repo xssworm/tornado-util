@@ -3,6 +3,7 @@
 import logging
 log = logging.getLogger('tornado_util.server')
 
+import tornado.web
 import tornado.options
 from tornado.options import options
 

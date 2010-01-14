@@ -1,3 +1,9 @@
+python-tornado-util (0.2.4) unstable; urgency=low
+
+  * bugfix: add missing import tornado.web
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Thu, 14 Jan 2010 23:55:35 +0400
+
 python-tornado-util (0.2.3) unstable; urgency=low
 
   * supervisor: call status after every start/stop command
