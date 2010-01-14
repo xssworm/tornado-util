@@ -30,6 +30,7 @@ import urllib2
 import httplib
 import logging
 import subprocess
+import time
 
 from functools import partial
 
@@ -86,14 +87,21 @@ def stop():
 def start(script):
     map_workers(partial(start_worker, script))
 
-def status():
+def status(expect=None):
     res = map_workers(is_running)
+
     if all(res):
-        logging.info('all workers are running')
+        if expect == 'stopped':
+            logging.error('all workers are running')
+        else:
+            logging.info('all workers are running')
     elif any(res):
         logging.warn('some workers are running!')
     else:
-        logging.info('all workers are stopped')
+        if expect == 'started':
+            logging.error('all workers are stopped')
+        else:
+            logging.info('all workers are stopped')
 
 def supervisor(script, config):
     tornado.options.define('start_port', 8000, int)
@@ -111,13 +119,18 @@ def supervisor(script, config):
     if cmd == 'start':
         stop()
         start(script)
+        time.sleep(1)
+        status(expect='started')
 
     elif cmd == 'stop':
         stop()
+        status(expect='stopped')
 
     elif cmd == 'restart':
         stop()
         start(script)
+        time.sleep(1)
+        status(expect='started')
 
     elif cmd == 'status':
         status()
