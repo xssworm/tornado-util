@@ -1,3 +1,9 @@
+python-tornado-util (0.2.5) unstable; urgency=low
+
+  * fix repository; karmic -> unstable
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Tue, 19 Jan 2010 17:18:05 +0400
+
 python-tornado-util (0.2.4ubuntu1) karmic; urgency=low
 
   * rebuild for ubuntu
