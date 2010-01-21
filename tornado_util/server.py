@@ -49,7 +49,7 @@ def bootstrap(config_file, default_port=8080):
         sys.stderr.write('failed to find any config file, aborting\n')
         sys.exit(1)
 
-def main(app):
+def main(app, watch_paths=[]):
     '''
     - запустить веб-сервер на указанных в параметрах host:port
     - запустить автоперезагрузку сервера, при изменении исходников
@@ -68,7 +68,7 @@ def main(app):
     
         if options.autoreload:
             import tornado.autoreload
-            tornado.autoreload.start(io_loop, 1000)
+            tornado.autoreload.start(io_loop, 1000, watch_paths)
 
         io_loop.start()
     except Exception, e:
