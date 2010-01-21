@@ -1,3 +1,9 @@
+python-tornado-util (0.2.6) unstable; urgency=low
+
+  * tornado_util.server.main: +watch_paths
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Thu, 21 Jan 2010 15:31:46 +0400
+
 python-tornado-util (0.2.5) unstable; urgency=low
 
   * fix repository; karmic -> unstable
