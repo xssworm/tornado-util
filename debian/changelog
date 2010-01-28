@@ -1,3 +1,9 @@
+python-tornado-util (0.2.7) unstable; urgency=low
+
+  * version bump
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Thu, 28 Jan 2010 17:31:52 +0400
+
 python-tornado-util (0.2.6) unstable; urgency=low
 
   * tornado_util.server.main: +watch_paths
