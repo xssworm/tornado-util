@@ -1,5 +1,31 @@
 # -*- coding: utf-8 -*-
 
+'''
+Sample usage from some-day-to-be-open-sourced "frontik" application server:
+### frontik_srv.py
+# ...
+if __name__ == '__main__':
+    config_filename = ...
+
+    # define additional options
+    tornado.options.define('suppressed_loggers', ['tornado.httpclient'], list)
+
+
+    # read configs and process standard options
+    tornado_util.server.bootstrap(config_filename)
+
+
+    # some pre-main-loop logic
+    for log_channel_name in options.suppressed_loggers:
+        logging.getLogger(log_channel_name).setLevel(logging.WARN)
+
+
+    # enter the main loop
+    import frontik.app
+    tornado_util.server.main(frontik.app.get_app())
+
+'''
+
 import logging
 log = logging.getLogger('tornado_util.server')
 
