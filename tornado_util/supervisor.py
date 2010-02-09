@@ -46,10 +46,11 @@ def is_running(port):
     except urllib2.HTTPError:
         return False
 
-def start_worker(script, port):
+def start_worker(script, config, port):
     logging.debug('start worker %s', port)
 
-    args = [script, 
+    args = [script,
+            '--config=%s' % (config,),
             '--port=%s' % (port,)]
 
     if options.logfile_template:
@@ -84,8 +85,8 @@ def stop():
             logging.warning('failed to stop workers')
             sys.exit(1)
 
-def start(script):
-    map_workers(partial(start_worker, script))
+def start(config, script):
+    map_workers(partial(start_worker, config, script))
 
 def status(expect=None):
     res = map_workers(is_running)
@@ -118,7 +119,7 @@ def supervisor(script, config):
 
     if cmd == 'start':
         stop()
-        start(script)
+        start(config, script)
         time.sleep(1)
         status(expect='started')
 
@@ -128,7 +129,7 @@ def supervisor(script, config):
 
     elif cmd == 'restart':
         stop()
-        start(script)
+        start(config, script)
         time.sleep(1)
         status(expect='started')
 
