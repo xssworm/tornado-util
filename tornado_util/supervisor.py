@@ -85,8 +85,8 @@ def stop():
             logging.warning('failed to stop workers')
             sys.exit(1)
 
-def start(config, script):
-    map_workers(partial(start_worker, config, script))
+def start(script, config):
+    map_workers(partial(start_worker, script, config))
 
 def status(expect=None):
     res = map_workers(is_running)
@@ -119,7 +119,7 @@ def supervisor(script, config):
 
     if cmd == 'start':
         stop()
-        start(config, script)
+        start(script, config)
         time.sleep(1)
         status(expect='started')
 
@@ -129,7 +129,7 @@ def supervisor(script, config):
 
     elif cmd == 'restart':
         stop()
-        start(config, script)
+        start(script, config)
         time.sleep(1)
         status(expect='started')
 
