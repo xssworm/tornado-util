@@ -31,6 +31,7 @@ log = logging.getLogger('tornado_util.server')
 
 import tornado.web
 import tornado.options
+import tornado.autoreload
 from tornado.options import options
 
 def bootstrap(config_file, default_port=8080):
@@ -53,12 +54,12 @@ def bootstrap(config_file, default_port=8080):
 
     tornado.options.parse_command_line()
     if options.config:
-        configs_to_read = [options.config]
+        config_to_read = options.config
     else:
-        configs_to_read = [config_file]
+        config_to_read = config_file
 
-    configs = tornado.options.parse_config_files(configs_to_read)
-    
+    tornado.options.parse_config_file(config_to_read)
+
     tornado.options.parse_command_line()
 
     if options.daemonize:
@@ -69,13 +70,10 @@ def bootstrap(config_file, default_port=8080):
 
     tornado.options.process_options()
 
-    if configs:
-        log.debug('read configs: %s', ', '.join(os.path.abspath(i) for i in configs))
-    else:
-        sys.stderr.write('failed to find any config file, aborting\n')
-        sys.exit(1)
+    log.debug('read config: %s', config_to_read)
+    tornado.autoreload.watch_file(config_to_read)
 
-def main(app, watch_paths=[]):
+def main(app):
     '''
     - запустить веб-сервер на указанных в параметрах host:port
     - запустить автоперезагрузку сервера, при изменении исходников
@@ -94,20 +92,20 @@ def main(app, watch_paths=[]):
     
         if options.autoreload:
             import tornado.autoreload
-            tornado.autoreload.start(io_loop, 1000, watch_paths)
+            tornado.autoreload.start(io_loop, 1000)
 
         io_loop.start()
     except Exception, e:
         log.exception('main failed')
 
 class StatusHandler(tornado.web.RequestHandler):
-    def get(self):
+    def get(self, *args, **kw):
         self.write('Ok\n')
 
 status_handler = ('/status/', StatusHandler)
 
 class StopHandler(tornado.web.RequestHandler):
-    def get(self):
+    def get(self, *args, **kw):
         log.info('requested shutdown')
         tornado.ioloop.IOLoop.instance().stop()
 
