@@ -1,3 +1,9 @@
+python-tornado-util (0.2.9) unstable; urgency=low
+
+  * use tornado.autoreload.watch_file for configs
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Tue,  2 Mar 2010 13:29:35 +0400
+
 python-tornado-util (0.2.8) unstable; urgency=low
 
   * bugfix tornado_util.supervisor
