@@ -1,3 +1,9 @@
+python-tornado-util (0.2.10) karmic; urgency=low
+
+  * version bump
+
+ -- Andrey Tatarinov <a.tatarinov@hh.ru>  Tue, 02 Mar 2010 13:54:31 +0300
+
 python-tornado-util (0.2.9) unstable; urgency=low
 
   * use tornado.autoreload.watch_file for configs
