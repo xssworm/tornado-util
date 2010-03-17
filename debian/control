@@ -9,6 +9,6 @@ Package: python-tornado-util
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends},
   python,
-  python-tornado (>= 0.2~hh9),
+  python-tornado (>= 0.2~hh10.1),
   python-daemon,
 Description: Helpers for production tornado services.
