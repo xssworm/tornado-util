@@ -71,7 +71,7 @@ def stop_worker(port):
         pass
 
 def map_workers(f):
-    return map(f, [options.start_port + p for p in range(options.workers_count)])
+    return map(f, [options.port + p for p in range(options.workers_count)])
 
 def stop():
     if any(map_workers(is_running)):
@@ -105,7 +105,7 @@ def status(expect=None):
             logging.info('all workers are stopped')
 
 def supervisor(script, config):
-    tornado.options.define('start_port', 8000, int)
+    tornado.options.define('port', 8000, int)
     tornado.options.define('workers_count', 4, int)
     tornado.options.define('logfile_template', None, str)
     tornado.options.define('pidfile_template', None, str)
