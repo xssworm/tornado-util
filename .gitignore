@@ -1,6 +1,7 @@
 *.pyc
 *~
 *.debhelper
+*.egg-info/
 build/
 debian/files
 debian/python-tornado-util*
