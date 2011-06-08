@@ -37,6 +37,21 @@ from functools import partial
 import tornado.options
 from tornado.options import options
 
+import os.path
+
+TIMEO = 1
+if os.path.exists('/etc/default/tornado_util'):
+    f = open('/etc/default/tornado_util', 'r')
+    for l in f:
+        try:
+            k,v = l.split('=', 1)
+            if 'STATUS_TIMEOUT' == k:
+                TIMEO = int(v)
+        except:
+            pass
+    f.close
+    
+
 def is_running(port):
     try:
         urllib2.urlopen('http://localhost:%s/status/' % (port,))
@@ -58,7 +73,7 @@ def start_worker(script, config, port):
 
     if options.pidfile_template:
         args.append('--pidfile=%s' % (options.pidfile_template % dict(port=port),))
-    
+
     return subprocess.Popen(args)
 
 def stop_worker(port):
@@ -94,15 +109,20 @@ def status(expect=None):
     if all(res):
         if expect == 'stopped':
             logging.error('all workers are running')
+            return 1
         else:
             logging.info('all workers are running')
+            return 0
     elif any(res):
         logging.warn('some workers are running!')
+        return 1
     else:
         if expect == 'started':
             logging.error('all workers are stopped')
+            return 1
         else:
             logging.info('all workers are stopped')
+            return 0
 
 def supervisor(script, config):
     tornado.options.define('port', 8000, int)
@@ -120,18 +140,18 @@ def supervisor(script, config):
     if cmd == 'start':
         stop()
         start(script, config)
-        time.sleep(1)
-        status(expect='started')
+        time.sleep(TIMEO)
+        sys.exit(status(expect='started'))
 
     elif cmd == 'stop':
         stop()
-        status(expect='stopped')
+        sys.exit(status(expect='stopped'))
 
     elif cmd == 'restart':
         stop()
         start(script, config)
-        time.sleep(1)
-        status(expect='started')
+        time.sleep(TIMEO)
+        sys.exit(status(expect='started'))
 
     elif cmd == 'status':
         status()
