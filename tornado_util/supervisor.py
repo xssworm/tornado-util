@@ -39,19 +39,6 @@ from tornado.options import options
 
 import os.path
 
-TIMEO = 1
-if os.path.exists('/etc/default/tornado_util'):
-    f = open('/etc/default/tornado_util', 'r')
-    for l in f:
-        try:
-            k,v = l.split('=', 1)
-            if 'STATUS_TIMEOUT' == k:
-                TIMEO = int(v)
-        except:
-            pass
-    f.close
-    
-
 def is_running(port):
     try:
         urllib2.urlopen('http://localhost:%s/status/' % (port,))
@@ -130,6 +117,8 @@ def supervisor(script, config):
     tornado.options.define('logfile_template', None, str)
     tornado.options.define('pidfile_template', None, str)
 
+    tornado.options.define('status_check_timeout', 1, int)
+
     tornado.options.parse_config_file(config)
 
     (cmd,) = tornado.options.parse_command_line()
@@ -140,7 +129,7 @@ def supervisor(script, config):
     if cmd == 'start':
         stop()
         start(script, config)
-        time.sleep(TIMEO)
+        time.sleep(options.status_check_timeout)
         sys.exit(status(expect='started'))
 
     elif cmd == 'stop':
@@ -150,12 +139,12 @@ def supervisor(script, config):
     elif cmd == 'restart':
         stop()
         start(script, config)
-        time.sleep(TIMEO)
+        time.sleep(options.status_check_timeout)
         sys.exit(status(expect='started'))
 
     elif cmd == 'status':
         status()
 
     else:
-        logging.error('either --start or --stop should be present')
+        logging.error('either --start, --stop, --restart or --status should be present')
         sys.exit(1)
