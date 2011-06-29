@@ -117,7 +117,7 @@ def supervisor(script, config):
     tornado.options.define('logfile_template', None, str)
     tornado.options.define('pidfile_template', None, str)
 
-    tornado.options.define('status_check_timeout', 1, int)
+    tornado.options.define('status_check_timeout', 3, int)
 
     tornado.options.parse_config_file(config)
 
