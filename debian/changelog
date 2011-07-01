@@ -1,9 +1,9 @@
 python-tornado-util (0.4.0) unstable; urgency=low
 
   * bugfix : tornado_util.supervisor added sys.exit
-  * new supervisor option : status_check_timeout 
+  * new supervisor option : status_check_timeout  
 
- --  Vasily Katraev <v.katraev@hh.ru>  Wed, 29 Jun 2011 12:31:29 +0400
+ -- Vasily Katraev (hh.ru) <katraev@putin.pyn.ru>  Fri, 01 Jul 2011 18:17:05 +0400
 
 python-tornado-util (0.3.0) unstable; urgency=low
 
