@@ -77,15 +77,15 @@ def map_workers(f):
 
 def stop():
     if any(map_workers(is_running)):
-        for i in range(3):
-            logging.warning('some of the workers are running; trying to kill')
-            map_workers(stop_worker)
+        logging.warning('some of the workers are running; trying to kill')
 
-            if not all(map_workers(is_running)):
-                break
-        else:
-            logging.warning('failed to stop workers')
-            sys.exit(1)
+    for i in xrange(3):
+        map_workers(stop_worker)
+        if not any(map_workers(is_running)):
+            break
+    else:
+        logging.warning('failed to stop workers')
+        sys.exit(1)
 
 def start(script, config):
     map_workers(partial(start_worker, script, config))
