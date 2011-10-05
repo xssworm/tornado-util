@@ -24,6 +24,7 @@ supervisor(
     config='/etc/frontik/frontik.cfg'
 )
 '''
+import signal
 
 import sys
 import urllib2
@@ -37,7 +38,16 @@ from functools import partial
 import tornado.options
 from tornado.options import options
 
+tornado.options.define('port', 8000, int)
+tornado.options.define('workers_count', 4, int)
+tornado.options.define('logfile_template', None, str)
+tornado.options.define('pidfile_template', None, str)
+
+tornado.options.define('start_check_timeout', 3, int)
+
+
 import os.path
+import os
 
 def is_running(port):
     try:
@@ -58,19 +68,32 @@ def start_worker(script, config, port):
     if options.logfile_template:
         args.append('--logfile=%s' % (options.logfile_template % dict(port=port),))
 
-    if options.pidfile_template:
-        args.append('--pidfile=%s' % (options.pidfile_template % dict(port=port),))
+    args.append('--pidfile=%s' % (options.pidfile_template % dict(port=port),))
 
     return subprocess.Popen(args)
 
 def stop_worker(port):
     logging.debug('stop worker %s', port)
+    path = options.pidfile_template % dict(port=port)
+    if not os.path.exists(path):
+        logging.warning('pidfile %s does not exist. dont know how to stop', path)
     try:
-        urllib2.urlopen('http://localhost:%s/stop/' % (port,))
-    except urllib2.URLError:
+        pid = int(file(path).read())
+        os.kill(pid, signal.SIGTERM)
+    except OSError:
         pass
-    except httplib.BadStatusLine:
+    except IOError:
         pass
+    except ValueError:
+        pass
+
+def rm_pidfile(port):
+    path = options.pidfile_template % dict(port=port)
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except :
+            logging.warning('failed to rm pidfile %s', path)
 
 def map_workers(f):
     return map(f, [options.port + p for p in range(options.workers_count)])
@@ -81,7 +104,9 @@ def stop():
 
     for i in xrange(3):
         map_workers(stop_worker)
+        time.sleep(options.stop_timeout/3.)
         if not any(map_workers(is_running)):
+            map_workers(rm_pidfile)
             break
     else:
         logging.warning('failed to stop workers')
@@ -89,6 +114,7 @@ def stop():
 
 def start(script, config):
     map_workers(partial(start_worker, script, config))
+    time.sleep(options.start_check_timeout)
 
 def status(expect=None):
     res = map_workers(is_running)
@@ -112,13 +138,6 @@ def status(expect=None):
             return 0
 
 def supervisor(script, config):
-    tornado.options.define('port', 8000, int)
-    tornado.options.define('workers_count', 4, int)
-    tornado.options.define('logfile_template', None, str)
-    tornado.options.define('pidfile_template', None, str)
-
-    tornado.options.define('status_check_timeout', 3, int)
-
     tornado.options.parse_config_file(config)
 
     (cmd,) = tornado.options.parse_command_line()
@@ -126,21 +145,14 @@ def supervisor(script, config):
     logging.getLogger().setLevel(logging.DEBUG)
     tornado.options.enable_pretty_logging()
 
-    if cmd == 'start':
+    if cmd == 'start' or cmd == 'restart':
         stop()
         start(script, config)
-        time.sleep(options.status_check_timeout)
         sys.exit(status(expect='started'))
 
     elif cmd == 'stop':
         stop()
         sys.exit(status(expect='stopped'))
-
-    elif cmd == 'restart':
-        stop()
-        start(script, config)
-        time.sleep(options.status_check_timeout)
-        sys.exit(status(expect='started'))
 
     elif cmd == 'status':
         status()

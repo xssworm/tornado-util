@@ -25,6 +25,7 @@ if __name__ == '__main__':
     tornado_util.server.main(frontik.app.get_app())
 
 '''
+import time
 
 import logging
 log = logging.getLogger('tornado_util.server')
@@ -52,6 +53,8 @@ def bootstrap(config_file, default_port=8080):
     tornado.options.define('daemonize', True, bool)
     tornado.options.define('autoreload', True, bool)
 
+    tornado.options.define('stop_timeout', 3, int)
+
     tornado.options.parse_command_line()
     if options.config:
         config_to_read = options.config
@@ -73,7 +76,7 @@ def bootstrap(config_file, default_port=8080):
     log.debug('read config: %s', config_to_read)
     tornado.autoreload.watch_file(config_to_read)
 
-def main(app):
+def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
     '''
     - запустить веб-сервер на указанных в параметрах host:port
     - запустить автоперезагрузку сервера, при изменении исходников
@@ -94,6 +97,25 @@ def main(app):
             import tornado.autoreload
             tornado.autoreload.start(io_loop, 1000)
 
+        def stop_handler(signum, frame):
+            log.info('Requested shutdown')
+            log.info('Shutdowning server on %s:%s', options.host, options.port)
+            http_server.stop()
+
+            if tornado.ioloop.IOLoop.instance().running():
+                log.info('Going down in %s s.', options.stop_timeout)
+                def timeo_stop():
+                    if tornado.ioloop.IOLoop.instance().running():
+                        log.info('Stoping ioloop.')
+                        tornado.ioloop.IOLoop.instance().stop()
+                        log.info('Stoped.')
+                        on_ioloop_stop()
+                tornado.ioloop.IOLoop.instance().add_timeout(time.time()+options.stop_timeout, timeo_stop)
+            on_stop_request()
+
+        import signal
+        signal.signal(signal.SIGTERM, stop_handler)
+
         io_loop.start()
     except Exception, e:
         log.exception('main failed')
@@ -103,10 +125,3 @@ class StatusHandler(tornado.web.RequestHandler):
         self.write('Ok\n')
 
 status_handler = ('/status/', StatusHandler)
-
-class StopHandler(tornado.web.RequestHandler):
-    def get(self, *args, **kw):
-        log.info('requested shutdown')
-        tornado.ioloop.IOLoop.instance().stop()
-
-stop_handler = ('/stop/', StopHandler)
