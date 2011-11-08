@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
 '''
 import time
+from functools import partial
 
 import logging
 log = logging.getLogger('tornado_util.server')
@@ -110,7 +111,9 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
                         tornado.ioloop.IOLoop.instance().stop()
                         log.info('Stoped.')
                         on_ioloop_stop()
-                tornado.ioloop.IOLoop.instance().add_timeout(time.time()+options.stop_timeout, timeo_stop)
+                def add_timeo():
+                    tornado.ioloop.IOLoop.instance().add_timeout(time.time()+options.stop_timeout, timeo_stop)
+                tornado.ioloop.IOLoop.instance().add_callback(add_timeo)
             on_stop_request()
 
         import signal

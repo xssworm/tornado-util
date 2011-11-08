@@ -1,3 +1,9 @@
+python-tornado-util (0.5.1) unstable; urgency=low
+
+  * SIGTERM handler fixed
+
+ -- Pavel Trukhanov <p.trukhanov@hh.ru>  Tue, 08 Nov 2011 12:48:07 +0300
+
 python-tornado-util (0.5.0) unstable; urgency=low
 
   * HH-18202 - graceful stop on SIGTERM basing on pidfile.
