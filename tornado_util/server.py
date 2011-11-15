@@ -36,6 +36,8 @@ import tornado.options
 import tornado.autoreload
 from tornado.options import options
 
+tornado.options.define('stop_timeout', 3, int)
+
 def bootstrap(config_file, default_port=8080):
     '''
     - объявить стандартные опции config, host, port, daemonize, autoreload
@@ -54,7 +56,7 @@ def bootstrap(config_file, default_port=8080):
     tornado.options.define('daemonize', True, bool)
     tornado.options.define('autoreload', True, bool)
 
-    tornado.options.define('stop_timeout', 3, int)
+
 
     tornado.options.parse_command_line()
     if options.config:
