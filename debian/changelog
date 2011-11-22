@@ -1,3 +1,9 @@
+python-tornado-util (0.5.2) unstable; urgency=low
+
+  * fix for control from /etc/init.d/frontik
+
+ -- Vasily Katraev (hh.ru) <v.katraev@hh.ru>  Tue, 15 Nov 2011 16:18:41 +0300
+
 python-tornado-util (0.5.1) unstable; urgency=low
 
   * SIGTERM handler fixed
