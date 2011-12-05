@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
 '''
 import time
+import lockfile
 from functools import partial
 
 import logging
@@ -55,10 +56,8 @@ def bootstrap(config_file, default_port=8080):
     tornado.options.define('port', default_port, int)
     tornado.options.define('daemonize', True, bool)
     tornado.options.define('autoreload', True, bool)
-
-
-
     tornado.options.parse_command_line()
+
     if options.config:
         config_to_read = options.config
     else:
@@ -90,6 +89,8 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
     import tornado.web
 
     try:
+        lock = lockfile.FileLock(options.pidfile)
+        lock.acquire()
         log.info('starting server on %s:%s', options.host, options.port)
         http_server = tornado.httpserver.HTTPServer(app)
         http_server.listen(options.port, options.host)
@@ -107,21 +108,31 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
 
             if tornado.ioloop.IOLoop.instance().running():
                 log.info('Going down in %s s.', options.stop_timeout)
+
                 def timeo_stop():
                     if tornado.ioloop.IOLoop.instance().running():
                         log.info('Stoping ioloop.')
                         tornado.ioloop.IOLoop.instance().stop()
                         log.info('Stoped.')
+                        lock.release()
                         on_ioloop_stop()
                 def add_timeo():
                     tornado.ioloop.IOLoop.instance().add_timeout(time.time()+options.stop_timeout, timeo_stop)
                 tornado.ioloop.IOLoop.instance().add_callback(add_timeo)
+
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
             on_stop_request()
 
         import signal
         signal.signal(signal.SIGTERM, stop_handler)
 
         io_loop.start()
+    except lockfile.AlreadyLocked, e:
+        log.exception('pid is locked by another process already')
+        raise
+    except lockfile.LockFailed, e:
+        log.exception('failed to create lock')
+        raise
     except Exception, e:
         log.exception('main failed')
 
