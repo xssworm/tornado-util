@@ -28,7 +28,6 @@ import signal
 
 import sys
 import urllib2
-import lockfile
 import httplib
 import logging
 import subprocess
@@ -56,8 +55,7 @@ def is_alive(port):
     try:
         path = options.pidfile_template % dict(port=port)
         pid = int(file(path).read())
-        if (lockfile.FileLock(options.pidfile_template % dict(port=port)).is_locked()
-            and  os.path.exists("/proc/{0}".format(pid)) ):
+        if os.path.exists("/proc/{0}".format(pid)):
             return True
         return False
     except Exception:
@@ -77,7 +75,6 @@ def start_worker(script, config, port):
     if is_alive(port):
         logging.warn("another process already started on %s", port)
         exit()
-    rm_pidfile(port)
     logging.debug('start worker %s', port)
 
     args = [script,

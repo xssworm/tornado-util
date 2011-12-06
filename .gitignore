@@ -6,3 +6,4 @@ build/
 debian/files
 debian/python-tornado-util*
 python-build-stamp*
+.idea/
