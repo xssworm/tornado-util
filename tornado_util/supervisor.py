@@ -74,7 +74,7 @@ def is_running(port):
 def start_worker(script, config, port):
     if is_alive(port):
         logging.warn("another process already started on %s", port)
-        exit()
+        sys.exit(1)
     logging.debug('start worker %s', port)
 
     args = [script,
@@ -117,9 +117,9 @@ def stop():
     if any(map_workers(is_running)):
         logging.warning('some of the workers are running; trying to kill')
 
-    for i in xrange(3):
+    for i in xrange(int(options.stop_timeout)):
         map_workers(stop_worker)
-        time.sleep(options.stop_timeout/3.)
+        time.sleep(1)
         if not any(map_workers(is_alive)):
             map_workers(rm_pidfile)
             break
