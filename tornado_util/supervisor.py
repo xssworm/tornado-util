@@ -104,13 +104,11 @@ def stop_worker(port):
 
 def rm_pidfile(port):
     pid_path = options.pidfile_template % dict(port=port)
-    pid_path_lock = options.pidfile_template % dict(port=port) + ".lock"''
-    for file_path in (pid_path, pid_path_lock):
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except :
-                logging.warning('failed to rm  %s', file_path)
+    if os.path.exists(pid_path):
+        try:
+            os.remove(pid_path)
+        except :
+            logging.warning('failed to rm  %s', pid_path)
 
 def map_workers(f):
     return map(f, [options.port + p for p in range(options.workers_count)])
