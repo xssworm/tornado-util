@@ -117,7 +117,7 @@ def stop():
     if any(map_workers(is_running)):
         logging.warning('some of the workers are running; trying to kill')
 
-    for i in xrange(int(options.stop_timeout)):
+    for i in xrange(int(options.stop_timeout) + 1):
         map_workers(stop_worker)
         time.sleep(1)
         if not any(map_workers(is_alive)):

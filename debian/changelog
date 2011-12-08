@@ -1,3 +1,9 @@
+python-tornado-util (0.6.1) unstable; urgency=low
+
+  * HH-18202 additional second for stop check
+
+ -- Vasily Katraev (hh.ru) <v.katraev@hh.ru>  Thu, 08 Dec 2011 20:11:54 +0400
+
 python-tornado-util (0.6.0) unstable; urgency=low
 
   * HH-23763 don't stop frontik on start
