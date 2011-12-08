@@ -1,3 +1,10 @@
+python-tornado-util (0.6.0) unstable; urgency=low
+
+  * HH-23763 don't stop frontik on start
+  * HH-18202 true logging for gracefull stop added
+
+ -- Vasily Katraev (hh.ru) <v.katraev@hh.ru>  Thu, 08 Dec 2011 14:11:19 +0400
+
 python-tornado-util (0.5.2) unstable; urgency=low
 
   * fix for control from /etc/init.d/frontik
