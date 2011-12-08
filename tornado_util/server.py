@@ -55,10 +55,8 @@ def bootstrap(config_file, default_port=8080):
     tornado.options.define('port', default_port, int)
     tornado.options.define('daemonize', True, bool)
     tornado.options.define('autoreload', True, bool)
-
-
-
     tornado.options.parse_command_line()
+
     if options.config:
         config_to_read = options.config
     else:
@@ -107,6 +105,7 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
 
             if tornado.ioloop.IOLoop.instance().running():
                 log.info('Going down in %s s.', options.stop_timeout)
+
                 def timeo_stop():
                     if tornado.ioloop.IOLoop.instance().running():
                         log.info('Stoping ioloop.')
@@ -116,6 +115,8 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
                 def add_timeo():
                     tornado.ioloop.IOLoop.instance().add_timeout(time.time()+options.stop_timeout, timeo_stop)
                 tornado.ioloop.IOLoop.instance().add_callback(add_timeo)
+
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
             on_stop_request()
 
         import signal

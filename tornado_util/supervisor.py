@@ -50,6 +50,18 @@ tornado.options.define('start_check_timeout', 3, int)
 import os.path
 import os
 
+
+def is_alive(port):
+    try:
+        path = options.pidfile_template % dict(port=port)
+        pid = int(file(path).read())
+        if os.path.exists("/proc/{0}".format(pid)):
+            return True
+        return False
+    except Exception:
+        return False
+
+
 def is_running(port):
     try:
         urllib2.urlopen('http://localhost:%s/status/' % (port,))
@@ -60,16 +72,18 @@ def is_running(port):
         return False
 
 def start_worker(script, config, port):
+    if is_alive(port):
+        logging.warn("another process already started on %s", port)
+        sys.exit(1)
     logging.debug('start worker %s', port)
 
     args = [script,
             '--config=%s' % (config,),
-            '--port=%s' % (port,)]
+            '--port=%s' % (port,),
+            '--pidfile=%s' % (options.pidfile_template % dict(port=port),)]
 
     if options.logfile_template:
         args.append('--logfile=%s' % (options.logfile_template % dict(port=port),))
-
-    args.append('--pidfile=%s' % (options.pidfile_template % dict(port=port),))
 
     return subprocess.Popen(args)
 
@@ -89,12 +103,12 @@ def stop_worker(port):
         pass
 
 def rm_pidfile(port):
-    path = options.pidfile_template % dict(port=port)
-    if os.path.exists(path):
+    pid_path = options.pidfile_template % dict(port=port)
+    if os.path.exists(pid_path):
         try:
-            os.remove(path)
+            os.remove(pid_path)
         except :
-            logging.warning('failed to rm pidfile %s', path)
+            logging.warning('failed to rm  %s', pid_path)
 
 def map_workers(f):
     return map(f, [options.port + p for p in range(options.workers_count)])
@@ -103,10 +117,10 @@ def stop():
     if any(map_workers(is_running)):
         logging.warning('some of the workers are running; trying to kill')
 
-    for i in xrange(3):
+    for i in xrange(int(options.stop_timeout)):
         map_workers(stop_worker)
-        time.sleep(options.stop_timeout/3.)
-        if not any(map_workers(is_running)):
+        time.sleep(1)
+        if not any(map_workers(is_alive)):
             map_workers(rm_pidfile)
             break
     else:
@@ -146,7 +160,11 @@ def supervisor(script, config):
     logging.getLogger().setLevel(logging.DEBUG)
     tornado.options.enable_pretty_logging()
 
-    if cmd == 'start' or cmd == 'restart':
+    if cmd == 'start':
+        start(script, config)
+        sys.exit(status(expect='started'))
+
+    if cmd == 'restart':
         stop()
         start(script, config)
         sys.exit(status(expect='started'))
