@@ -23,6 +23,11 @@ supervisor(
     script='/usr/bin/frontik_srv.py',
     config='/etc/frontik/frontik.cfg'
 )
+
+All exit codes returned by commands are trying to be compatible with LSB standard [1] as much as possible
+
+[1] http://refspecs.linuxbase.org/LSB_3.1.1/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
+
 """
 import signal
 
@@ -201,7 +206,7 @@ def status(expect=None):
             return 1
         else:
             logging.info('all workers are stopped')
-            return 0
+            return 3
 
 
 def supervisor(script, config):
@@ -223,10 +228,11 @@ def supervisor(script, config):
 
     elif cmd == 'stop':
         stop()
-        sys.exit(status(expect='stopped'))
+        status_code = status(expect='stopped')
+        sys.exit(0 if status_code == 3 else 1)
 
     elif cmd == 'status':
-        status()
+        sys.exit(status())
 
     else:
         logging.error('either --start, --stop, --restart or --status should be present')
