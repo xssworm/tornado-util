@@ -1,3 +1,12 @@
+python-tornado-util (0.6.2) unstable; urgency=low
+
+  * HH-34942 fix init-script exit codes to be more complying to LSB
+  * HH-34878: supervisor: stop stale workers on `stop`, report stale workers
+    on `status`, tune timeouts for `stop`
+  * HH-35783 - Added log_blocked_ioloop_timeout setting
+
+ -- Aleksey Rybalkin <aleksey@rybalkin.org>  Fri, 19 Jul 2013 17:42:10 +0400
+
 python-tornado-util (0.6.1) unstable; urgency=low
 
   * HH-18202 additional second for stop check
