@@ -55,6 +55,7 @@ def bootstrap(config_file, default_port=8080):
     tornado.options.define('port', default_port, int)
     tornado.options.define('daemonize', True, bool)
     tornado.options.define('autoreload', True, bool)
+    tornado.options.define('log_blocked_ioloop_timeout', 0, float)
     tornado.options.parse_command_line()
 
     if options.config:
@@ -93,7 +94,9 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
         http_server.listen(options.port, options.host)
     
         io_loop = tornado.ioloop.IOLoop.instance()
-    
+        if tornado.options.options.log_blocked_ioloop_timeout > 0:
+            io_loop.set_blocking_log_threshold(tornado.options.options.log_blocked_ioloop_timeout)
+
         if options.autoreload:
             import tornado.autoreload
             tornado.autoreload.start(io_loop, 1000)
