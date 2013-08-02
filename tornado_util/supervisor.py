@@ -38,6 +38,7 @@ import subprocess
 import time
 import glob
 import re
+import socket
 
 from functools import partial
 
@@ -58,11 +59,15 @@ import os
 starter_scripts = {}
 
 
-def is_alive(port):
+def is_alive(port, config):
     try:
         path = options.pidfile_template % dict(port=port)
         pid = int(file(path).read())
         if os.path.exists("/proc/{0}".format(pid)):
+            with open("/proc/{0}/cmdline".format(pid), 'r') as cmdline_file:
+                cmdline = cmdline_file.readline()
+                if cmdline is not None and config in cmdline and 'python' in cmdline:
+                    return True
             return True
         return False
     except IOError:
@@ -71,18 +76,21 @@ def is_alive(port):
 
 def is_running(port):
     try:
-        response = urllib2.urlopen('http://localhost:%s/status/' % (port,))
+        response = urllib2.urlopen('http://localhost:%s/status/' % (port,), timeout=1)
         for (header, value) in response.info().items():
             if header == 'server' and value.startswith('TornadoServer'):
                 return True
         return False
     except urllib2.URLError:
         return False
+    except socket.error as e:
+        logging.warn("socket error ({0}) on port {1}".format(e, port))
+        return False
 
 
 def start_worker(script, config, port):
-    if is_alive(port):
-        logging.warn("another process already started on %s", port)
+    if is_alive(port, config):
+        logging.warn("another worker already started on %s", port)
         return None
     logging.debug('start worker %s', port)
 
@@ -106,11 +114,7 @@ def stop_worker(port, signal_to_send=signal.SIGTERM):
     try:
         pid = int(file(path).read())
         os.kill(pid, signal_to_send)
-    except OSError:
-        pass
-    except IOError:
-        pass
-    except ValueError:
+    except (OSError, IOError, ValueError):
         pass
 
 
@@ -146,24 +150,24 @@ def map_all_workers(f):
     return map_workers(f) + map_stale_workers(f)
 
 
-def stop():
-    if any(map_all_workers(is_running)):
+def stop(config):
+    if any(map_all_workers(lambda port: is_alive(port, config))):
         logging.warning('some of the workers are running; trying to kill')
 
-    map_all_workers(lambda port: stop_worker(port, signal.SIGTERM))
+    map_all_workers(lambda port: stop_worker(port, signal.SIGTERM) if is_alive(port, config) else rm_pidfile(port))
     time.sleep(int(options.supervisor_sigterm_timeout))
-    map_all_workers(lambda port: stop_worker(port, signal.SIGKILL) if is_alive(port) else rm_pidfile(port))
+    map_all_workers(lambda port: stop_worker(port, signal.SIGKILL) if is_alive(port, config) else rm_pidfile(port))
     time.sleep(0.1 * options.workers_count)
     map_all_workers(lambda port:
-                    rm_pidfile(port) if not is_alive(port)
+                    rm_pidfile(port) if not is_alive(port, config)
                     else logging.warning("failed to stop worker on port %d" % port))
-    if any(map_all_workers(is_alive)):
+    if any(map_all_workers(lambda port: is_alive(port, config))):
         logging.warning('failed to stop workers')
         sys.exit(1)
 
 
-def check_start_status(port):
-    alive = is_alive(port)
+def check_start_status(port, config):
+    alive = is_alive(port, config)
     running = is_running(port)
     shell_script_exited = starter_scripts.get(port, None) is None or starter_scripts[port].poll() is not None
     if alive and running and shell_script_exited:
@@ -178,9 +182,9 @@ def check_start_status(port):
 def start(script, config):
     map_workers(partial(start_worker, script, config))
     time.sleep(1)
-    while not all(map_workers(check_start_status)):
+    while not all(map_workers(lambda port: check_start_status(port, config))):
         time.sleep(1)
-    map_workers(lambda port: rm_pidfile(port) if not is_alive(port) else 0)
+    map_workers(lambda port: rm_pidfile(port) if not is_alive(port, config) else 0)
 
 
 def status(expect=None):
@@ -222,12 +226,12 @@ def supervisor(script, config):
         sys.exit(status(expect='started'))
 
     if cmd == 'restart':
-        stop()
+        stop(config)
         start(script, config)
         sys.exit(status(expect='started'))
 
     elif cmd == 'stop':
-        stop()
+        stop(config)
         status_code = status(expect='stopped')
         sys.exit(0 if status_code == 3 else 1)
 
