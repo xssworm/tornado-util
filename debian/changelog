@@ -1,3 +1,9 @@
+python-tornado-util (0.6.3) unstable; urgency=low
+
+  * HH-36083 improve is_alive and is_running
+
+ -- Aleksey Rybalkin <aleksey@rybalkin.org>  Wed, 04 Sep 2013 14:03:08 +0400
+
 python-tornado-util (0.6.2) unstable; urgency=low
 
   * HH-34942 fix init-script exit codes to be more complying to LSB
