@@ -29,8 +29,8 @@ All exit codes returned by commands are trying to be compatible with LSB standar
 [1] http://refspecs.linuxbase.org/LSB_3.1.1/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
 
 """
-import signal
 
+import signal
 import sys
 import urllib2
 import logging
@@ -39,7 +39,7 @@ import time
 import glob
 import re
 import socket
-
+import os
 from functools import partial
 
 import tornado.options
@@ -51,10 +51,6 @@ tornado.options.define('logfile_template', None, str)
 tornado.options.define('pidfile_template', None, str)
 
 tornado.options.define('supervisor_sigterm_timeout', 4, int)
-
-
-import os.path
-import os
 
 starter_scripts = {}
 

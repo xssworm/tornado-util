@@ -1,59 +1,39 @@
 # -*- coding: utf-8 -*-
 
-'''
-Sample usage from some-day-to-be-open-sourced "frontik" application server:
-### frontik_srv.py
-# ...
+"""
+Example usage:
+
 if __name__ == '__main__':
-    config_filename = ...
-
-    # define additional options
-    tornado.options.define('suppressed_loggers', ['tornado.httpclient'], list)
-
-
     # read configs and process standard options
     tornado_util.server.bootstrap(config_filename)
 
+    tornado_util.server.main(tornado.web.Application(...))
+"""
 
-    # some pre-main-loop logic
-    for log_channel_name in options.suppressed_loggers:
-        logging.getLogger(log_channel_name).setLevel(logging.WARN)
-
-
-    # enter the main loop
-    import frontik.app
-    tornado_util.server.main(frontik.app.get_app())
-
-'''
 import time
-from functools import partial
-
 import logging
-log = logging.getLogger('tornado_util.server')
 
 import tornado.web
 import tornado.options
 import tornado.autoreload
 from tornado.options import options
 
+log = logging.getLogger('tornado_util.server')
+
 tornado.options.define('stop_timeout', 3, int)
 
-def bootstrap(config_file, default_port=8080):
-    '''
-    - объявить стандартные опции config, host, port, daemonize, autoreload
-    - прочитать командную строку, конфигурационный файл
-    - демонизироваться
-    - инициализировать протоколирование
-    '''
 
-    import sys
-    import os.path
+def bootstrap(config_file, default_port=8080):
+    """
+    - define options: config, host, port, daemonize, autoreload
+    - read command line options and config file
+    - daemonize
+    """
 
     tornado.options.define('config', None, str)
-
     tornado.options.define('host', '0.0.0.0', str)
     tornado.options.define('port', default_port, int)
-    tornado.options.define('daemonize', True, bool)
+    tornado.options.define('daemonize', False, bool)
     tornado.options.define('autoreload', True, bool)
     tornado.options.define('log_blocked_ioloop_timeout', 0, float)
     tornado.options.parse_command_line()
@@ -65,11 +45,11 @@ def bootstrap(config_file, default_port=8080):
 
     tornado.options.parse_config_file(config_to_read)
 
+    # override options from config with command line options
     tornado.options.parse_command_line()
 
     if options.daemonize:
         import daemon
-
         ctx = daemon.DaemonContext()
         ctx.open()
 
@@ -78,11 +58,12 @@ def bootstrap(config_file, default_port=8080):
     log.debug('read config: %s', config_to_read)
     tornado.autoreload.watch_file(config_to_read)
 
-def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
-    '''
-    - запустить веб-сервер на указанных в параметрах host:port
-    - запустить автоперезагрузку сервера, при изменении исходников
-    '''
+
+def main(app, on_stop_request=lambda: None, on_ioloop_stop=lambda: None):
+    """
+    - run server on host:port
+    - launch autoreload on file changes
+    """
 
     import tornado.httpserver
     import tornado.ioloop
@@ -102,21 +83,23 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
             tornado.autoreload.start(io_loop, 1000)
 
         def stop_handler(signum, frame):
-            log.info('Requested shutdown')
-            log.info('Shutdowning server on %s:%s', options.host, options.port)
+            log.info('requested shutdown')
+            log.info('shutdowning server on %s:%s', options.host, options.port)
             http_server.stop()
 
             if tornado.ioloop.IOLoop.instance().running():
-                log.info('Going down in %s s.', options.stop_timeout)
+                log.info('going down in %s sec', options.stop_timeout)
 
                 def timeo_stop():
                     if tornado.ioloop.IOLoop.instance().running():
-                        log.info('Stoping ioloop.')
+                        log.info('stopping ioloop')
                         tornado.ioloop.IOLoop.instance().stop()
-                        log.info('Stoped.')
+                        log.info('stopped')
                         on_ioloop_stop()
+
                 def add_timeo():
                     tornado.ioloop.IOLoop.instance().add_timeout(time.time()+options.stop_timeout, timeo_stop)
+
                 tornado.ioloop.IOLoop.instance().add_callback(add_timeo)
 
             signal.signal(signal.SIGTERM, signal.SIG_IGN)
@@ -127,10 +110,4 @@ def main(app, on_stop_request = lambda: None, on_ioloop_stop = lambda: None):
 
         io_loop.start()
     except Exception, e:
-        log.exception('main failed')
-
-class StatusHandler(tornado.web.RequestHandler):
-    def get(self, *args, **kw):
-        self.write('Ok\n')
-
-status_handler = ('/status/', StatusHandler)
+        log.exception('failed to start Tornado application')

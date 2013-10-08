@@ -1,5 +1,5 @@
-This are some of the helpers functions, that emerged from production
-use of Tornado in hh.ru
+This module contains helper functions for starting and controlling Tornado applications.
+Used in production at hh.ru.
 
 Depends on:
   python-daemon
